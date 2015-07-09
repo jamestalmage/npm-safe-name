@@ -1,45 +1,59 @@
 'use strict';
-
-// Rules for package names:
-// https://docs.npmjs.com/files/package.json#name
-
-// http://stackoverflow.com/questions/695438/safe-characters-for-friendly-url
-// Url Friendly: uppercase and lowercase letters, decimal digits, hyphen, period, underscore, and tilde
-
-var FULL_NAME = /^(?:@([a-z0-9\-~][a-z0-9\-\._~]*)\/)?([a-z0-9\-~][a-z0-9\-\._~]*)$/;
-var SCOPE = /^(?:@?([a-z0-9\-~][a-z0-9\-\._~]*))?$/;
-var NAME = /^[a-z0-9\-~][a-z0-9\-\._~]*$/;
-
 module.exports = check;
-
-function check(name, scope) {
-  if (scope) {
-    if (!NAME.test(name)) return null;
-
-    scope = SCOPE.exec(scope);
-    if (!scope) return null;
-    scope = scope[1];
-
-    return (name.length + scope.length < 212 || null) && new NpmPackageName (scope, name);
-  } else {
-    var match = (name.length < 214 || null) && FULL_NAME.exec(name);
-    return match && new NpmPackageName(match[1], match[2]);
-  }
-}
-
-module.exports.validate = function (name, scope) {
-  var result = check(name, scope);
-  if (result) return result;
-
-  var message = (scope ? new NpmPackageName(scope, name) : name).toString();
-  throw new Error(message + " is not a valid package name");
-};
-
+module.exports.validate = validate;
 module.exports.NpmPackageName = NpmPackageName;
 
-function NpmPackageName (scope, name) {
-  this.scope = scope || null;
-  this.name = name;
+var isValid = require('validate-npm-package-name');
+var scopedPackagePattern = new RegExp("^(?:@([^/]+?)[/])?([^/]+?)$");
+
+function check(name, scope) {
+  var fn = fullName(name, scope);
+  if (isValid(fn).validForNewPackages) {
+    return new NpmPackageName(fn);
+  }
+  return null;
+}
+
+function fullName(name, scope) {
+  var fullName = name;
+  if (scope) {
+    if (scope.charAt(0) === '@') {
+      fullName = scope + '/' + name;
+    } else {
+      fullName = '@' + scope + '/' + name;
+    }
+  }
+  return fullName;
+}
+
+function validate(name, scope) {
+  var fn = fullName(name, scope);
+  var valid = isValid(fn);
+  if (valid.validForNewPackages) {
+    return new NpmPackageName(fn);
+  }
+  var message = [
+    (scope ? new NpmPackageName(scope, name) : name).toString() +
+    " is not a valid package name"
+  ];
+
+  if (valid.errors) {
+    message.push('Errors:');
+    message.push(valid.errors.join('\n\t'));
+  }
+  if (valid.warnings) {
+    message.push('Warnings:');
+    message.push(valid.warnings.join('\n\t'));
+  }
+
+  throw new Error(message.join('\n'));
+}
+
+
+function NpmPackageName (fullName) {
+  var parts = scopedPackagePattern.exec(fullName);
+  this.scope = parts[1] || null;
+  this.name = parts[2];
 }
 
 NpmPackageName.prototype.toJSON =

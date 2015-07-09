@@ -21,7 +21,9 @@
   "keywords": [
     "npm"
   ],
-  "dependencies": {},
+  "dependencies": {
+    "validate-npm-package-name": "^2.2.2"
+  },
   "devDependencies": {
     "jshint": "^2.8.0",
     "mocha": "*"

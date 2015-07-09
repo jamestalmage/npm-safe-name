@@ -85,19 +85,19 @@ describe('npm-safe-name', function () {
     assert.strictEqual(new Array(3).join('a'), 'aa');
     name('aa').shouldPass();
 
-    var maxLengthName = new Array(214).join('b');
+    var maxLengthName = new Array(215).join('b');
     name(maxLengthName).shouldPass();
 
-    var tooLongName = new Array(215).join('c');
+    var tooLongName = new Array(216).join('c');
     name(tooLongName).shouldFail();
 
     var prefix = '@james/';
-    var maxWithScope = new Array(214 - (prefix.length)).join('c');
+    var maxWithScope = new Array(215 - (prefix.length)).join('d');
     name(prefix + maxWithScope).shouldPass();
     name(maxWithScope, 'james').shouldPass();
     name(maxWithScope, '@james').shouldPass();
 
-    var tooLongWithScope = new Array(215 - (prefix.length)).join('c');
+    var tooLongWithScope = new Array(216 - (prefix.length)).join('e');
     name(prefix + tooLongWithScope).shouldFail();
     name(tooLongWithScope, 'james').shouldFail();
     name(tooLongWithScope, '@james').shouldFail();
