@@ -11,9 +11,16 @@ var isValid = require('validate-npm-package-name');
 var scopedPackagePattern = new RegExp("^(?:@([^/]+?)[/])?([^/]+?)$");
 
 function check(name, scope, allowLegacy) {
+  if (name instanceof NpmPackageName) {
+    if (!allowLegacy && name.legacyOnly) {
+      return null;
+    }
+    return name;
+  }
   var fn = fullName(name, scope);
-  if (isValid(fn)[prop(allowLegacy)]) {
-    return new NpmPackageName(fn);
+  var valid = isValid(fn);
+  if (valid[prop(allowLegacy)]) {
+    return new NpmPackageName(fn, !valid.validForNewPackages);
   }
   return null;
 }
@@ -43,10 +50,16 @@ function fullName(name, scope) {
 }
 
 function validate(name, scope, allowLegacy) {
+  if (name instanceof NpmPackageName) {
+    if (!allowLegacy && name.legacyOnly) {
+      return validate(name.toString());
+    }
+    return name;
+  }
   var fn = fullName(name, scope);
   var valid = isValid(fn);
   if (valid[prop(allowLegacy)]) {
-    return new NpmPackageName(fn);
+    return new NpmPackageName(fn, !valid.validForNewPackages);
   }
   var message = [
     (scope ? new NpmPackageName(scope, name) : name).toString() +
@@ -64,11 +77,11 @@ function validate(name, scope, allowLegacy) {
   throw new Error(message.join('\n'));
 }
 
-
-function NpmPackageName (fullName) {
+function NpmPackageName (fullName, legacyOnly) {
   var parts = scopedPackagePattern.exec(fullName);
   this.scope = parts[1] || null;
   this.name = parts[2];
+  this.legacyOnly = legacyOnly;
 }
 
 NpmPackageName.prototype.toJSON =

@@ -47,21 +47,19 @@ describe('npm-safe-name', function () {
       if (allowLegacy) {
         fullName = '(legacy): ' + fullName;
       }
-      it(fullName + ' will ' + (shouldThrow ? '' : 'not ') + 'throw', function (done) {
+      it(fullName + ' will ' + (shouldThrow ? '' : 'not ') + 'throw', function () {
         try {
           (allowLegacy ? isSafe.legacy :isSafe).validate(name, scope);
         } catch (e) {
           if (shouldThrow) {
             if (/valid package name/.test(e.toString())) {
-              return done();
-            } else {
-              return done(new Error('threw an error, but bad message: ' + e))
+              return;
             }
+            throw new Error('threw an error, but bad message: ' + e);
           }
-          return done(e);
+          throw e;
         }
-        if (shouldThrow) return done(new Error('should have thrown'));
-        return done();
+        if (shouldThrow) throw new Error('should have thrown');
       });
     }
 
@@ -110,6 +108,32 @@ describe('npm-safe-name', function () {
     name(prefix + tooLongWithScope).shouldFail();
     name(tooLongWithScope, 'james').shouldFail();
     name(tooLongWithScope, '@james').shouldFail();
+  });
+
+  describe('passing NpmPackage Instances', function() {
+    it('should just return what we had if it is valid', function() {
+      var result = isSafe.legacy('@good-name/good-package');
+      assert.strictEqual(isSafe(result), result);
+      assert.strictEqual(isSafe.validate(result), result);
+    });
+
+    it('should return null if its legacy only passed to non-legacy mode', function(){
+      var result = isSafe.legacy('@good-name/Legacy-Only-Package');
+      assert.strictEqual(isSafe.legacy(result), result);
+      assert.strictEqual(isSafe(result), null);
+    });
+
+    it('should return null if its legacy only passed to non-legacy mode', function(){
+      var result = isSafe.legacy('@good-name/Legacy-Only-Package');
+      assert.strictEqual(isSafe.legacy.validate(result), result);
+
+      try {
+        isSafe.validate(result);
+      } catch (e) {
+        return;
+      }
+      throw new Error('should have thrown');
+    });
   });
 });
 
