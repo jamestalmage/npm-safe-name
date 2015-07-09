@@ -1,17 +1,33 @@
 'use strict';
 module.exports = check;
 module.exports.validate = validate;
+module.exports.legacy = legacyCheck;
+module.exports.legacy.validate = legacyValidate;
+
+module.exports.legacy.NpmPackageName =
 module.exports.NpmPackageName = NpmPackageName;
 
 var isValid = require('validate-npm-package-name');
 var scopedPackagePattern = new RegExp("^(?:@([^/]+?)[/])?([^/]+?)$");
 
-function check(name, scope) {
+function check(name, scope, allowLegacy) {
   var fn = fullName(name, scope);
-  if (isValid(fn).validForNewPackages) {
+  if (isValid(fn)[prop(allowLegacy)]) {
     return new NpmPackageName(fn);
   }
   return null;
+}
+
+function legacyCheck(name, scope) {
+  return check(name, scope, true);
+}
+
+function legacyValidate(name, scope) {
+  return validate(name, scope, true);
+}
+
+function prop(allowLegacy) {
+  return allowLegacy ? 'validForOldPackages' : 'validForNewPackages';
 }
 
 function fullName(name, scope) {
@@ -26,10 +42,10 @@ function fullName(name, scope) {
   return fullName;
 }
 
-function validate(name, scope) {
+function validate(name, scope, allowLegacy) {
   var fn = fullName(name, scope);
   var valid = isValid(fn);
-  if (valid.validForNewPackages) {
+  if (valid[prop(allowLegacy)]) {
     return new NpmPackageName(fn);
   }
   var message = [
@@ -45,7 +61,6 @@ function validate(name, scope) {
     message.push('Warnings:');
     message.push(valid.warnings.join('\n\t'));
   }
-
   throw new Error(message.join('\n'));
 }
 

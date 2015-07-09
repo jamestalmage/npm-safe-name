@@ -39,6 +39,15 @@ npmSafeName.validate(/*...*/);
 // same as above but will throw an error on invalid input instead of returning null
 ```
 
+By default, this only checks if the input is valid name for a [new package](https://github.com/npm/validate-npm-package-name#legacy-names).
+If you want to validate only the more permissive legacy rules, you can do this:
+
+```js
+var npmSafeName = require('npm-safe-name').legacy;
+```
+
+It has an identical API, the only difference being it will validate only against the old rules.
+
 ## API
 
 ### npmSafeName(name [, scope])<br/>

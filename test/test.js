@@ -11,8 +11,10 @@ describe('npm-safe-name', function () {
     name('bad name').shouldFail();
     name('good~name').shouldPass();
     name('Good~name').shouldFail();
+    assert(isSafe.legacy('Good~name'), 'Good~name should pass in legacy mode');
     name('good.name').shouldPass();
     name('.goodname').shouldFail();
+    assert.strictEqual(isSafe.legacy('.goodname'), null, '.goodname should fail even in legacy mode');
     name('_goodname').shouldFail();
   });
 
@@ -40,11 +42,14 @@ describe('npm-safe-name', function () {
 
   describe('.validate will throw if input is bad', function () {
 
-    function testValidate(name, scope, shouldThrow) {
+    function testValidate(name, scope, shouldThrow, allowLegacy) {
       var fullName = scope ? scope + '/' + name : name;
+      if (allowLegacy) {
+        fullName = '(legacy): ' + fullName;
+      }
       it(fullName + ' will ' + (shouldThrow ? '' : 'not ') + 'throw', function (done) {
         try {
-          isSafe.validate(name, scope);
+          (allowLegacy ? isSafe.legacy :isSafe).validate(name, scope);
         } catch (e) {
           if (shouldThrow) {
             if (/valid package name/.test(e.toString())) {
@@ -61,14 +66,18 @@ describe('npm-safe-name', function () {
     }
 
     testValidate('@good-scope/good-name');
+    testValidate('@good-scope/good-name', null, false, true);
     testValidate('bad-scope/good-name', null, true);
     testValidate('@bad scope/good-name', null, true);
     testValidate('good-name', 'good-scope');
+    testValidate('good-name', 'good-scope', false, true);
     testValidate('good-name', '@good-scope');
+    testValidate('good-name', '@good-scope', false, true);
     testValidate('good-name', '@bad scope', true);
     testValidate('good-name', 'bad scope', true);
     testValidate('bad name', 'good-scope', true);
-
+    testValidate('Bad-new-name', 'good-scope', true);
+    testValidate('Bad-new-name', 'good-scope', false, true);
   });
 
   it('result has appropriate scope and name properties', function () {
