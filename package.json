@@ -1,7 +1,7 @@
 {
   "name": "npm-safe-name",
   "version": "0.0.0",
-  "description": "My stunning module",
+  "description": "determine if a string is a safe npm module name",
   "license": "MIT",
   "repository": "jamestalmage/npm-safe-name",
   "author": {
@@ -19,7 +19,7 @@
     "index.js"
   ],
   "keywords": [
-    ""
+    "npm"
   ],
   "dependencies": {},
   "devDependencies": {
