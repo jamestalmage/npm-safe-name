@@ -11,6 +11,8 @@ describe('npm-safe-name', function() {
 		name('good.name').shouldPass();
 		name('.goodname').shouldFail();
 		name('_goodname').shouldFail();
+		name('@james/my-package').shouldPass();
+		name('james/my-package').shouldFail();
 	});
 });
 
