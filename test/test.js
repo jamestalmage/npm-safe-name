@@ -1,9 +1,12 @@
+"use strict";
+
 var assert = require('assert');
 
 var isSafe = require('../');
 
 describe('npm-safe-name', function() {
-	it('pass / fail', function(){
+
+	it('npmSafeName(name)', function(){
 		name('good-name').shouldPass();
 		name('bad name').shouldFail();
 		name('good~name').shouldPass();
@@ -11,8 +14,20 @@ describe('npm-safe-name', function() {
 		name('good.name').shouldPass();
 		name('.goodname').shouldFail();
 		name('_goodname').shouldFail();
-		name('@james/my-package').shouldPass();
-		name('james/my-package').shouldFail();
+	});
+
+	it('npmSafeName(name, scope)', function(){
+		name('good-name', 'good-scope').shouldPass();
+		name('good-name', '@good-scope').shouldPass();
+		name('good-name', 'bad scope').shouldFail();
+		name('bad name', 'good-scope').shouldFail();
+	});
+
+	it('npmSafeName(fullName)', function(){
+		name('@good-scope/good-name').shouldPass();
+		name('bad-scope/good-name').shouldFail();
+		name('@bad scope/good-name').shouldFail();
+		name('@good-scope/bad name').shouldFail();
 	});
 
 	it('value comparison of result', function() {
@@ -23,11 +38,46 @@ describe('npm-safe-name', function() {
 		assert.notStrictEqual(isSafe('@james/good-name'), '@james/good-name');
 	});
 
+	describe('.validate will throw if input is bad', function() {
+
+		function testValidate(name, scope, shouldThrow) {
+			var fullName = scope ? scope + '/' + name : name;
+			it (fullName + ' will ' + (shouldThrow ? '' : 'not ') + 'throw', function(done) {
+				try {
+					isSafe.validate(name, scope);
+				} catch (e) {
+					if (shouldThrow) {
+						if (/valid package name/.test(e.toString())){
+							return done();
+						} else {
+							return done(new Error('threw an error, but bad message: ' + e))
+						}
+					}
+					return done(e);
+				}
+				if (shouldThrow) return done(new Error('should have thrown'));
+				return done();
+			});
+		}
+
+		testValidate('@good-scope/good-name');
+		testValidate('bad-scope/good-name', null, true);
+		testValidate('@bad scope/good-name', null, true);
+		testValidate('good-name', 'good-scope');
+		testValidate('good-name', '@good-scope');
+		testValidate('good-name', '@bad scope', true);
+		testValidate('good-name', 'bad scope', true);
+		testValidate('bad name', 'good-scope', true);
+
+	});
+
 	it('result has appropriate scope and name properties', function() {
 		assert.strictEqual(isSafe('good-name').name, 'good-name');
 		assert.strictEqual(isSafe('good-name').scope, null);
 		assert.strictEqual(isSafe('@james/good-name').name, 'good-name');
 		assert.strictEqual(isSafe('@james/good-name').scope, 'james');
+		assert.strictEqual(isSafe('good-name', 'good-scope').scope, 'good-scope');
+		assert.strictEqual(isSafe('good-name', '@good-scope').scope, 'good-scope');
 	});
 
 	it('long names fail', function() {
@@ -42,22 +92,27 @@ describe('npm-safe-name', function() {
 		name(tooLongName).shouldFail();
 
 		var prefix = '@james/';
-    var maxWithScope = prefix + new Array(214 - (prefix.length)).join('c');
-		name(maxWithScope).shouldPass();
+    var maxWithScope = new Array(214 - (prefix.length)).join('c');
+		name(prefix + maxWithScope).shouldPass();
+		name(maxWithScope, 'james').shouldPass();
+		name(maxWithScope, '@james').shouldPass();
 
-		var tooLongWithScope = prefix + new Array(215 - (prefix.length)).join('c');
-		name(tooLongWithScope).shouldFail();
+		var tooLongWithScope = new Array(215 - (prefix.length)).join('c');
+		name(prefix + tooLongWithScope).shouldFail();
+		name(tooLongWithScope, 'james').shouldFail();
+		name(tooLongWithScope, '@james').shouldFail();
 	});
 });
 
-function name (s) {
+function name (name, scope) {
+	var result = isSafe.apply(null, arguments);
+	var value = result || new isSafe.NpmPackageName(scope, name);
 	return {
 		shouldPass: function() {
-			assert(isSafe(s), JSON.stringify(s) + ' should have passed');
+			assert(result, value.toString() + ' should have passed');
 		},
 		shouldFail: function() {
-			assert(!isSafe(s), JSON.stringify(s) + ' should have failed');
+			assert.strictEqual(result, null, value.toString() + ' should have failed');
 		}
 	}
 }
-
