@@ -1,0 +1,29 @@
+{
+  "name": "npm-safe-name",
+  "version": "0.0.0",
+  "description": "My stunning module",
+  "license": "MIT",
+  "repository": "jamestalmage/npm-safe-name",
+  "author": {
+    "name": "James Talmage",
+    "email": "james@talmage.io",
+    "url": "github.com/jamestalmage"
+  },
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "scripts": {
+    "test": "jshint && mocha"
+  },
+  "files": [
+    "index.js"
+  ],
+  "keywords": [
+    ""
+  ],
+  "dependencies": {},
+  "devDependencies": {
+    "jshint": "^2.8.0",
+    "mocha": "*"
+  }
+}
