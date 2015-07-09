@@ -1,4 +1,4 @@
-# npm-safe-name [![Build Status](https://travis-ci.org/jamestalmage/npm-safe-name.svg?branch=master)](https://travis-ci.org/jamestalmage/npm-safe-name)
+# npm-safe-name [![Build Status](https://travis-ci.org/jamestalmage/npm-safe-name.svg?branch=master)](https://travis-ci.org/jamestalmage/npm-safe-name) [![Coverage Status](https://coveralls.io/repos/jamestalmage/npm-safe-name/badge.svg?branch=master&service=github)](https://coveralls.io/github/jamestalmage/npm-safe-name?branch=master)
 
 > Check if a string is a safe name for the npm registry.
 
