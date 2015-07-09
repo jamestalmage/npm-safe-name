@@ -104,6 +104,13 @@ Type: `string`
 
 The package name, without the leading scope part. (`"package-name"`)
 
+### NpmPackageName.prototype.legacyOnly
+
+Type: `boolean`
+
+`true` if and only if the name is both a *valid* legacy name, and an *invalid* new name.
+`false` otherwise
+
 
 ### NpmPackageName.prototype.toString()<br/>
 ### NpmPackageName.prototype.valueOf()<br/>
